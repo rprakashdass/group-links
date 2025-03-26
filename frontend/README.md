@@ -1,50 +1,124 @@
-# React + TypeScript + Vite
+# React Tailwind Template
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a minimal, production-ready template for React projects using **Vite**, **TypeScript**, **Tailwind CSS**, and **pnpm**. The template is optimized for fast builds and modern web development workflows.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Vite**: A blazing-fast build tool for modern web projects.
+- **React 18**: The latest version of React for building user interfaces.
+- **TypeScript**: Type-safe development for scalable applications.
+- **Tailwind CSS**: A utility-first CSS framework for styling.
+- **SWC**: A super-fast compiler for modern JavaScript and TypeScript.
+- **pnpm**: A fast, disk-space-efficient package manager.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Prerequisites
 
-- Configure the top-level `parserOptions` property like this:
+Ensure you have the following installed:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- [Node.js](https://nodejs.org/) (v16.14 or later recommended)
+- [pnpm](https://pnpm.io/) (v7 or later)
+
+---
+
+## Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/rprakashdass/react-tailwind-template.git
+cd react-tailwind-template
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 2. Install Dependencies
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+pnpm install
 ```
+
+### 3. Run the Development Server
+
+```bash
+pnpm dev
+```
+
+The development server will start, and the app will be accessible at [http://localhost:5173](http://localhost:5173).
+
+---
+
+## Project Structure
+
+```
+react-tailwind-template/
+├── public/             # Static assets
+├── src/
+│   ├── assets/         # Images, fonts, and other static resources
+│   ├── components/     # Reusable React components
+│   ├── pages/          # Page components
+│   ├── App.tsx         # Main application component
+│   ├── main.tsx        # Entry point for React
+│   ├── styles/         # Tailwind CSS configuration and global styles
+│   └── vite-env.d.ts   # TypeScript definitions for Vite
+├── .eslintrc.cjs       # ESLint configuration
+├── .prettierrc         # Prettier configuration
+├── tailwind.config.js  # Tailwind CSS configuration
+├── tsconfig.json       # TypeScript configuration
+├── vite.config.ts      # Vite configuration
+└── package.json        # Project metadata
+```
+
+---
+
+## Scripts
+
+- **`pnpm dev`**: Start the development server.
+- **`pnpm build`**: Build the application for production.
+- **`pnpm preview`**: Preview the production build.
+- **`pnpm lint`**: Lint the codebase using ESLint.
+- **`pnpm format`**: Format the codebase using Prettier.
+
+---
+
+## Styling with Tailwind CSS
+
+Tailwind CSS is pre-configured and ready to use. Add your custom styles in `src/styles/tailwind.css` or extend the configuration in `tailwind.config.js`.
+
+### Example:
+
+```tsx
+export default function ExampleComponent() {
+  return <div className="p-4 bg-blue-500 text-white">Hello, Tailwind!</div>;
+}
+```
+
+---
+
+## TypeScript
+
+TypeScript is enabled for type safety and better developer experience. Use `.ts` or `.tsx` files for your components and logic.
+
+---
+
+## Deployment
+
+1. Build the project:
+   ```bash
+   pnpm build
+   ```
+
+2. Deploy the `dist/` folder to your hosting provider.
+
+---
+
+## Contributing
+
+Feel free to open issues or create pull requests to improve this template. Contributions are welcome!
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
