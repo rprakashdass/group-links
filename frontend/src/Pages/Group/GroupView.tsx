@@ -13,6 +13,7 @@ type ChatType = {
 type GroupType = {
     name: string;
     groupUrl: string;
+    adminOnlyChat: boolean;
     chats: ChatType[];
     visits: number;
     createdAt: Date;
@@ -50,7 +51,8 @@ const GroupView = () => {
                 senderName : "Anonymous",
                 message,
             })
-            setChats([...(response.data.chats || [])] );
+            // setChats([...(response.data.chats || [])] );
+            setChats((prevChats) => [...prevChats, response.data]);
             setMessage("");
         } catch (err) {
             console.error("Error sending message", err);
@@ -84,22 +86,27 @@ const GroupView = () => {
                         ))}
                         <div ref={chatEndRef}></div>
                     </div>
-                    <div className='static'>
+
+                    {!group?.adminOnlyChat ? (
                         <form onSubmit={sendMessage} className='flex flex-row bg-white p-1 rounded-md'>
-                            <input type='text'
+                            <input
+                                type='text'
                                 name='message'
                                 className='w-[95%] bg-white-300 bg-blue-100/50 p-1 rounded-md me-2'
                                 onChange={(e) => setMessage(e.target.value)}
                                 value={message}
                             />
-                            <button type='submit'>
+                            <button type='submit' disabled={!message.trim()}>
                                 <IoMdSend
                                     size={24}
                                     className={`text-blue-500 ${!message.trim() && "opacity-50"}`}
                                 />
                             </button>
                         </form>
-                    </div>
+                    ) : (
+                        <p className="text-center text-white font-bold text-lg">Only admins can send messages.</p>
+                    )}
+
                 </div>
             </div>
         </div>
