@@ -1,15 +1,15 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import './App.css';
-import Home from './Pages/Group/Group';
-import Page from './Pages/Group/GenerateLink';
+import GroupView from './Pages/Group/GroupView';
+import Home from './Pages/Home';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path='' element={<Page/>}/>
-        <Route path='/group/:groupUrl' element={<Home/>}/>
+        <Route path='' element={<Home/>}/>
+        <Route path='/group/:groupUrl' element={<GroupView/>}/>
       </Routes>
     </BrowserRouter>
   );
