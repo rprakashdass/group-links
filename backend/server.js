@@ -12,10 +12,21 @@ const MONGO_URI = process.env.MONGO_URI;
 const GroupRouter = require('./routes/groupRoutes');
 
 app.use(express.json());
-app.use(cors());
-// app.use('/', (req, res) => {
-//     res.send("Group links is working!!")
-// })
+
+const allowedOrigins = [
+    "http://localhost:5173", 'http://g.rprakashdass.in'
+]
+app.use(cors({
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ["POST", "PUT", "GET", "DELETE"],
+    credentials: true,
+}));
 app.use('/group', GroupRouter);
 
 // db connect

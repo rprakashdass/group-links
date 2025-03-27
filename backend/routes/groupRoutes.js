@@ -14,6 +14,18 @@ router.get('/:groupUrl', async (req, res) => {
     }
 });
 
+router.get('/exists/:groupUrl', async (req, res) => {
+    try {
+        const group = await Group.findOne({ groupUrl: req.params.groupUrl });
+        if (!group) {
+            return res.status(202).send(false);
+        }
+        return res.status(200).send(true);
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
 router.post('/create-group', async (req, res) => {
     try{
         const { name, groupUrl } = req.body;

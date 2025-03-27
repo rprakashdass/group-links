@@ -16,7 +16,7 @@ const Home = () => {
             </div>
             <div className="inline-flex mt-5">
                 <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md m-2" 
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md m-2"
                     onClick={() => {
                         setEnterGroupView(prev => !prev);
                         setCreateGroupView(false);

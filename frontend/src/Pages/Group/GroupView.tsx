@@ -24,7 +24,9 @@ const GroupView = () => {
         if(!groupUrl) return;
         axios.get(`${SERVER_URL}/group/${groupUrl.groupUrl}`)
             .then(group => setGroup(group.data))
-            .catch(err => console.error(err))
+            .catch(err => {
+                console.error(err);
+            })
     }, [groupUrl])
 
     return (
@@ -34,19 +36,17 @@ const GroupView = () => {
                     {group?.name}
                 </h1>
             </div>
-            <div className="flex flex-row justify-center">
+            <div className="flex flex-row justify-center h-[80vh]">
                 {/* messages */}
-                <div className="flex flex-col gap-5">
-                    <div className="rounded-md p-5">
-                        <div className="flex flex-col gap-4 p-4">
+                <div className="flex flex-col gap-5 rounded-md p-5 bg-blue-500/20 w-[75%] h-full bottom-0 justify-between">
+                    <div className="flex flex-col gap-4 p-4">
                         {group?.chats.map((item, index) => (
-                            <div key={index} className={`flex flex-col max-w-md p-3 rounded-lg shadow-md
-                                ${item.senderName === "You" ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-gray-900 self-start"}`}>
+                            <div key={index} className="flex flex-col max-w-md p-3 rounded-lg shadow-md bg-blue-500">
                                 <span className="text-gray-500">
                                     {item.timeStamp ? new Date(item.timeStamp).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Invalid Date"}
                                 </span>
 
-                                <p className="text-lg font-semibold">{item.message}</p>
+                                <p className="text-lg font-semibold text-white">{item.message}</p>
 
                                 <div className="flex justify-between text-xs mt-2">
                                     <span className="font-semibold">{item.senderName}</span>
@@ -56,7 +56,9 @@ const GroupView = () => {
                                 </div>
                             </div>
                         ))}
-                        </div>
+                    </div>
+                    <div className='flex flex-col bg-white p-5 rounded-md'>
+                        <button></button>
                     </div>
                 </div>
             </div>
