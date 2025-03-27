@@ -26,6 +26,10 @@ const groupSchema = new mongoose.Schema({
             default: Date.now
         }
     }],
+    adminOnlyChat : {
+        type: Boolean,
+        default: false
+    },
     visits: {
         type: Number,
         required: false,
