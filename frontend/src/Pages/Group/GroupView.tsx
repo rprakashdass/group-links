@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import SERVER_URL from '../../../config/api';
 
 type GroupType = {
     name: string;
@@ -21,7 +22,7 @@ const GroupView = () => {
 
     useEffect(() => {
         if(!groupUrl) return;
-        axios.get(`http://localhost:3000/group/${groupUrl.groupUrl}`)
+        axios.get(`${SERVER_URL}/group/${groupUrl.groupUrl}`)
             .then(group => setGroup(group.data))
             .catch(err => console.error(err))
     }, [groupUrl])
@@ -39,7 +40,7 @@ const GroupView = () => {
                     <div className="rounded-md p-5">
                         <div className="flex flex-col gap-4 p-4">
                         {group?.chats.map((item, index) => (
-                            <div key={index} className={`flex flex-col max-w-md p-3 rounded-lg shadow-md 
+                            <div key={index} className={`flex flex-col max-w-md p-3 rounded-lg shadow-md
                                 ${item.senderName === "You" ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-gray-900 self-start"}`}>
                                 <span className="text-gray-500">
                                     {item.timeStamp ? new Date(item.timeStamp).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Invalid Date"}
