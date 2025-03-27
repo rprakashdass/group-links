@@ -16,7 +16,7 @@ app.use(cors());
 // app.use('/', (req, res) => {
 //     res.send("Group links is working!!")
 // })
-app.use('/', GroupRouter);
+app.use('/group', GroupRouter);
 
 // db connect
 mongoose.connect(MONGO_URI)

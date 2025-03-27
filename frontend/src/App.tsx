@@ -9,7 +9,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path='' element={<Page/>}/>
-        <Route path='/group' element={<Home/>}/>
+        <Route path='/group/:groupUrl' element={<Home/>}/>
       </Routes>
     </BrowserRouter>
   );
