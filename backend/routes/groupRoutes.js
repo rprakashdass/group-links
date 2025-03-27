@@ -46,13 +46,15 @@ router.post('/create-group', async (req, res) => {
 router.post('/:groupUrl/send-message', async (req, res) => {
     try{
         const { senderName, message } = req.body;
-        const group = await Group.findOne({ groupUrl: req.params.groupUrl });
+        const groupUrl = req.params.groupUrl;
+        const group = await Group.findOne({ groupUrl });
         if(!group){
-            return res.status(400).json({message: "Group Url does'nt exists."})
+            return res.status(400).json({message: "Group Url does'nt exists.", groupUrl})
         }
         group.chats.push({senderName, message});
         await group.save();
-        res.status(200).json({ message: "Message sent!", chat: group.chats });
+        const chats = group.chats;
+        res.status(200).json({ chats });
     } catch (error) {
         res.status(500).json({message: "Server error", error: error.message});
     }
