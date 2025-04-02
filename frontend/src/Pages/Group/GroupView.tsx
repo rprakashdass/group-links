@@ -5,112 +5,166 @@ import SERVER_URL from '../../../config/api';
 import { IoMdSend } from 'react-icons/io';
 
 type ChatType = {
-    senderName: string;
-    message: string;
-    timeStamp: Date;
-}
+  senderName: string;
+  message: string;
+  timeStamp: Date;
+};
 
 type GroupType = {
-    name: string;
-    groupUrl: string;
-    adminOnlyChat: boolean;
-    chats: ChatType[];
-    visits: number;
-    createdAt: Date;
-}
+  name: string;
+  groupUrl: string;
+  adminOnlyChat: boolean;
+  chats: ChatType[];
+  visits: number;
+  createdAt: Date;
+};
 
 const GroupView = () => {
+  const [message, setMessage] = useState<string>('');
+  const { groupUrl } = useParams<{ groupUrl: string }>();
+  const [group, setGroup] = useState<GroupType | null>(null);
+  const [chats, setChats] = useState<ChatType[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-    const [message, setMessage] = useState<string>("");
-    const {groupUrl} = useParams<{ groupUrl : string}>();
-    const [group, setGroup] = useState<GroupType | null>(null);
-    const [chats, setChats] = useState<ChatType[]>([]);
-    const chatEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!groupUrl) return;
+    setLoading(true);
+    axios
+      .get(`${SERVER_URL}/group/${groupUrl}`)
+      .then((response) => {
+        setGroup(response.data);
+        setChats(response.data.chats || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError('Failed to load group data');
+        setLoading(false);
+      });
+  }, [groupUrl]);
 
-    useEffect(()  => {
-        if(!groupUrl) return;
-        axios.get(`${SERVER_URL}/group/${groupUrl}`)
-            .then((response) => {
-                setGroup(response.data)
-                setChats(response.data.chats)
-            })
-            .catch(err => {
-                console.error(err);
-            })
-    }, [groupUrl])
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chats]);
 
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'instant' });
-    }, [chats]);
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim() || !groupUrl) return;
 
-    const sendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if(!message.trim()) return;
-        try{
-            const response = await axios.post(`${SERVER_URL}/group/${groupUrl}/send-message`, {
-                senderName : "Anonymous",
-                message,
-            })
-            // setChats([...(response.data.chats || [])] );
-            setChats((prevChats) => [...prevChats, response.data]);
-            setMessage("");
-        } catch (err) {
-            console.error("Error sending message", err);
-        }
+    try {
+      const response = await axios.post(`${SERVER_URL}/group/${groupUrl}/send-message`, {
+        senderName: 'Anonymous', // Replace with actual user if available
+        message,
+      });
+      // Assuming response.data is the new chat message
+      setChats((prevChats) => [...prevChats, response.data]);
+      setMessage('');
+    } catch (err) {
+      console.error('Error sending message', err);
     }
+  };
 
+  if (loading) {
     return (
-        <div className='bg-yellow-50 h-screen'>
-            <div className="w-full top-0 bg-blue-500 text-white border-b-1">
-                <h1 className="text-xl p-3 text-center font-semibold">
-                    {group?.name}
-                </h1>
-            </div>
-            <div className="flex flex-row justify-center h-[92vh] bg-blue-400">
-                <div className="flex flex-col gap-5 rounded-md p-5 w-full md:w-[75%] h-full bottom-0 justify-between">
-                    {/* messages */}
-                    <div className="flex flex-col gap-4 p-4 overflow-scroll">
-                        {chats && chats.map((item, index) => (
-                            <div key={index} className="flex flex-col max-w-md p-3 rounded-lg shadow-md bg-blue-100/30">
-                                <span className="text-white/75">
-                                    {item.timeStamp ? new Date(item.timeStamp).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Invalid Date"}
-                                </span>
-                                <p className="text-lg font-semibold text-white">{item.message}</p>
-                                <div className="flex justify-between text-xs mt-2">
-                                    <span className="font-semibold text-white/65">{item.senderName}</span>
-                                    <span className="text-white/55">
-                                        {item.timeStamp ? new Date(item.timeStamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "Invalid Time"}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                        <div ref={chatEndRef}></div>
-                    </div>
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <p className="text-lg text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
-                    {!group?.adminOnlyChat ? (
-                        <form onSubmit={sendMessage} className='flex flex-row bg-white p-1 rounded-md'>
-                            <input
-                                type='text'
-                                name='message'
-                                className='w-[95%] bg-white-300 bg-blue-100/50 p-1 rounded-md me-2'
-                                onChange={(e) => setMessage(e.target.value)}
-                                value={message}
-                            />
-                            <button type='submit' disabled={!message.trim()}>
-                                <IoMdSend
-                                    size={24}
-                                    className={`text-blue-500 ${!message.trim() && "opacity-50"}`}
-                                />
-                            </button>
-                        </form>
-                    ) : (
-                        <p className="text-center text-white font-bold text-lg">Only admins can send messages.</p>
-                    )}
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <p className="text-lg text-red-600">{error}</p>
+      </div>
+    );
+  }
 
-                </div>
-            </div>
+  return (
+    <div className="flex flex-col h-screen bg-gray-100">
+      {/* Header */}
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md">
+        <div className="p-4 text-center">
+          <h1 className="text-xl font-semibold text-gray-800">{group?.name || 'Group Chat'}</h1>
         </div>
-    )
-}
+      </div>
+
+      {/* Chat Area */}
+      <div className="flex-1 pt-16 pb-20 overflow-y-auto">
+        <div className="flex flex-col gap-4 p-4">
+          {chats.map((item, index) => (
+            <div
+              key={index}
+              className={`flex w-full ${
+                item.senderName === 'Anonymous' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <div
+                className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
+                  item.senderName === 'Anonymous'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-800'
+                }`}
+              >
+                <p className="text-base">{item.message}</p>
+                <div className="flex justify-between mt-1 text-xs">
+                  <span
+                    className={
+                      item.senderName === 'Anonymous' ? 'text-blue-100' : 'text-gray-500'
+                    }
+                  >
+                    {item.senderName}
+                  </span>
+                  <span
+                    className={
+                      item.senderName === 'Anonymous' ? 'text-blue-100' : 'text-gray-500'
+                    }
+                  >
+                    {item.timeStamp
+                      ? new Date(item.timeStamp).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : 'Invalid Time'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+      </div>
+
+      {/* Input Area */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        {group?.adminOnlyChat ? (
+          <p className="text-center text-gray-600 font-medium">
+            Only admins can send messages
+          </p>
+        ) : (
+          <form onSubmit={sendMessage} className="flex items-center gap-2">
+            <input
+              type="text"
+              name="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="p-2 disabled:opacity-50"
+            >
+              <IoMdSend size={24} className="text-blue-500" />
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default GroupView;
