@@ -13,13 +13,14 @@ const MONGO_URI = process.env.MONGO_URI;
 // Routers
 const GroupRouter = require('./routes/groupRoutes');
 const UserRouter = require('./routes/userRoutes');
-const AuthRouter = require('./routes/authRoutes'); // Assuming you have an auth router
+const AuthRouter = require('./routes/authRoutes');
 
 // Middleware
 app.use(express.json());
 
 // CORS configuration
 const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS || '[]');
+
 app.use(cors({
     origin: function (origin, callback) {
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {

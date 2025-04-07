@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Group = require('../models/Group');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const { createUser } = require('../controllers/authController');
 
 // Get user details by user ID
 router.get('/:userId', async (req, res) => {
@@ -97,5 +98,6 @@ router.post('/:userId/visit/:groupId', async (req, res) => {
     }
 });
 
+router.post('/create-user', createUser);
 
 module.exports = router;
