@@ -20,7 +20,7 @@ app.use(express.json());
 
 // CORS configuration
 const allowedOrigins = [
-    "http://localhost:5173", 
+    "http://localhost:5173",
     "http://g.rprakashdass.in"
 ];
 app.use(cors({
@@ -41,7 +41,7 @@ app.use('/users', UserRouter);
 app.use('/auth', AuthRouter); // For authentication-related routes
 
 // Database connection
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URI)
     .then(() => console.log("DB connected"))
     .catch(err => console.error("DB connection error:", err));
 

@@ -6,7 +6,7 @@ import SERVER_URL from "../../config/api";
 import CreateGroupView from "./Group/CreateGroupView";
 import EnterGroupView from "./Group/EnterGroupView";
 import GroupView from "./Group/GroupView";
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX } from "react-icons/fi";
 
 type GroupType = {
     _id: string;
@@ -44,12 +44,10 @@ const Home: React.FC = () => {
                     return;
                 }
 
-                let endpoint = "";
-                if (activeTab === "joined") {
-                    endpoint = `${SERVER_URL}/groups/visited/${user.id}`;
-                } else if (activeTab === "created") {
-                    endpoint = `${SERVER_URL}/groups/created/${user.id}`;
-                }
+                const endpoint =
+                    activeTab === "joined"
+                        ? `${SERVER_URL}/groups/visited/${user.id}`
+                        : `${SERVER_URL}/groups/created/${user.id}`;
 
                 const response = await axios.get(endpoint, {
                     headers: {
@@ -78,15 +76,27 @@ const Home: React.FC = () => {
 
     const renderContent = () => {
         if (activeTab === "join") {
-            return <EnterGroupView />;
+            return (
+                <div className="w-full flex justify-center items-center">
+                    <EnterGroupView />
+                </div>
+            );
         }
 
         if (activeTab === "create") {
-            return <CreateGroupView />;
+            return (
+                <div className="w-full flex justify-center items-center">
+                    <CreateGroupView />
+                </div>
+            );
         }
 
         if (activeTab === "groupView" && selectedGroupUrl) {
-            return <GroupView/>;
+            return (
+                <div className="w-full flex justify-center items-center">
+                    <GroupView />
+                </div>
+            );
         }
 
         if (loadingGroups) {
@@ -99,14 +109,14 @@ const Home: React.FC = () => {
 
         if (groups.length > 0) {
             return (
-                <ul className="space-y-4">
+                <ul className="w-full max-w-3xl mx-auto space-y-4">
                     {groups.map((group) => (
                         <li
                             key={group._id}
-                            className="p-4 bg-white rounded-lg shadow-md hover:bg-gray-100 cursor-pointer"
                             onClick={() => handleGroupClick(group.groupUrl)}
+                            className="p-4 bg-white rounded-lg shadow hover:bg-gray-100 cursor-pointer transition-all duration-200"
                         >
-                            <p className="font-medium text-lg">{group.name}</p>
+                            <p className="font-semibold text-lg">{group.name}</p>
                             <p className="text-sm text-gray-500">/groups/{group.groupUrl}</p>
                         </li>
                     ))}
@@ -115,7 +125,7 @@ const Home: React.FC = () => {
         }
 
         return (
-            <p className="text-center text-gray-600">
+            <p className="text-center text-gray-600 mt-4">
                 {activeTab === "joined"
                     ? "You haven't joined any groups yet."
                     : "You haven't created any groups yet."}
@@ -131,16 +141,13 @@ const Home: React.FC = () => {
         );
     }
 
-    if (!user) {
-        return null;
-    }
+    if (!user) return null;
+
     return (
         <div className="flex h-screen flex-col md:flex-row">
             {/* Mobile Top Bar */}
             <div className="md:hidden flex justify-between items-center bg-blue-600 text-white px-4 py-3">
-                <div>
-                    <h1 className="text-lg font-bold">Welcome, {user.username}!</h1>
-                </div>
+                <h1 className="text-lg font-semibold">Hello, {user.username}</h1>
                 <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                     {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
                 </button>
@@ -148,23 +155,23 @@ const Home: React.FC = () => {
 
             {/* Sidebar */}
             <div
-                className={`bg-white shadow-md md:static md:block w-full md:w-1/4 ${
-                    isSidebarOpen ? 'block' : 'hidden'
+                className={`bg-white shadow-md md:static w-full md:w-1/4 ${
+                    isSidebarOpen ? "block" : "hidden md:block"
                 }`}
             >
                 <div className="p-4 bg-blue-600 text-white hidden md:block">
                     <h1 className="text-xl font-bold">Welcome, {user.username}!</h1>
                     <p className="text-sm">{user.email}</p>
                 </div>
-                <div className="flex flex-col mt-4">
+                <div className="flex flex-col mt-2 divide-y">
                     {["joined", "created", "join", "create"].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => {
                                 setActiveTab(tab as typeof activeTab);
-                                setIsSidebarOpen(false); // close sidebar on mobile after click
+                                setIsSidebarOpen(false);
                             }}
-                            className={`p-4 text-left ${
+                            className={`px-4 py-3 text-left transition-all ${
                                 activeTab === tab ? "bg-blue-100 font-bold" : "hover:bg-gray-100"
                             }`}
                         >
@@ -179,8 +186,9 @@ const Home: React.FC = () => {
                     ))}
                 </div>
             </div>
+
             {/* Main Content */}
-            <div className="flex-1 bg-gray-100 p-4 overflow-y-auto">{renderContent()}</div>
+            <main className="flex-1 bg-gray-100 p-6 overflow-y-auto">{renderContent()}</main>
         </div>
     );
 };
