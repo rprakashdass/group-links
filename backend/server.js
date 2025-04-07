@@ -1,21 +1,28 @@
-require('dotenv').config()
-const express = require('express')
-const app = express()
-const cors = require('cors')
-const mongoose = require('mongoose')
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
 
-// env
-const PORT = process.env.PORT;
+// Initialize Express app
+const app = express();
+
+// Environment variables
+const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
-// routers
+// Routers
 const GroupRouter = require('./routes/groupRoutes');
+const UserRouter = require('./routes/userRoutes');
+const AuthRouter = require('./routes/authRoutes'); // Assuming you have an auth router
 
+// Middleware
 app.use(express.json());
 
+// CORS configuration
 const allowedOrigins = [
-    "http://localhost:5173", 'http://g.rprakashdass.in'
-]
+    "http://localhost:5173", 
+    "http://g.rprakashdass.in"
+];
 app.use(cors({
     origin: function (origin, callback) {
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -27,13 +34,18 @@ app.use(cors({
     methods: ["POST", "PUT", "GET", "DELETE"],
     credentials: true,
 }));
-app.use('/group', GroupRouter);
 
-// db connect
-mongoose.connect(MONGO_URI)
-    .then( res => console.log("DB connected"))
-    .catch( err => console.error(err))
+// Routes
+app.use('/groups', GroupRouter);
+app.use('/users', UserRouter);
+app.use('/auth', AuthRouter); // For authentication-related routes
 
-app.listen(PORT, (req, res) => {
-    console.log("Server is listening to " + PORT);
-})
+// Database connection
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log("DB connected"))
+    .catch(err => console.error("DB connection error:", err));
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+});

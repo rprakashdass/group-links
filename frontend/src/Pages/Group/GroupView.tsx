@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import SERVER_URL from '../../../config/api';
 import { IoMdSend } from 'react-icons/io';
+import useUser from '../../hooks/useUser'; // Import useUser hook
 
 type ChatType = {
   senderName: string;
@@ -17,9 +18,14 @@ type GroupType = {
   chats: ChatType[];
   visits: number;
   createdAt: Date;
+  admin: {
+    username: string;
+    email: string;
+  };
 };
 
 const GroupView = () => {
+  const { user } = useUser(); // Get the logged-in user's data from UserContext
   const [message, setMessage] = useState<string>('');
   const { groupUrl } = useParams<{ groupUrl: string }>();
   const [group, setGroup] = useState<GroupType | null>(null);
@@ -32,7 +38,7 @@ const GroupView = () => {
     if (!groupUrl) return;
     setLoading(true);
     axios
-      .get(`${SERVER_URL}/group/${groupUrl}`)
+      .get(`${SERVER_URL}/groups/${groupUrl}`)
       .then((response) => {
         setGroup(response.data);
         setChats(response.data.chats || []);
@@ -54,11 +60,24 @@ const GroupView = () => {
     if (!message.trim() || !groupUrl) return;
 
     try {
-      const response = await axios.post(`${SERVER_URL}/group/${groupUrl}/send-message`, {
-        senderName: 'Anonymous', // Replace with actual user if available
-        message,
-      });
-      // Assuming response.data is the new chat message
+      const token = localStorage.getItem('token'); // Retrieve the token for authentication
+      if (!token) {
+        alert('You must be logged in to send a message.');
+        return;
+      }
+
+      const response = await axios.post(
+        `${SERVER_URL}/groups/${groupUrl}/send-message`,
+        {
+          senderName: user?.username || 'Anonymous', // Use the logged-in user's name or fallback to 'Anonymous'
+          message,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Pass the token in the headers
+          },
+        }
+      );
       setChats((prevChats) => [...prevChats, response.data]);
       setMessage('');
     } catch (err) {
@@ -88,6 +107,9 @@ const GroupView = () => {
       <div className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md">
         <div className="p-4 text-center">
           <h1 className="text-xl font-semibold text-gray-800">{group?.name || 'Group Chat'}</h1>
+          <p className="text-sm text-gray-500">
+            Admin: {group?.admin?.username || 'Unknown'}
+          </p>
         </div>
       </div>
 
@@ -98,12 +120,12 @@ const GroupView = () => {
             <div
               key={index}
               className={`flex w-full ${
-                item.senderName === 'Anonymous' ? 'justify-end' : 'justify-start'
+                item.senderName === user?.username ? 'justify-end' : 'justify-start'
               }`}
             >
               <div
                 className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
-                  item.senderName === 'Anonymous'
+                  item.senderName === user?.username
                     ? 'bg-blue-500 text-white'
                     : 'bg-white text-gray-800'
                 }`}
@@ -112,14 +134,14 @@ const GroupView = () => {
                 <div className="flex justify-between mt-1 text-xs">
                   <span
                     className={
-                      item.senderName === 'Anonymous' ? 'text-blue-100' : 'text-gray-500'
+                      item.senderName === user?.username ? 'text-blue-100' : 'text-gray-500'
                     }
                   >
                     {item.senderName}
                   </span>
                   <span
                     className={
-                      item.senderName === 'Anonymous' ? 'text-blue-100' : 'text-gray-500'
+                      item.senderName === user?.username ? 'text-blue-100' : 'text-gray-500'
                     }
                   >
                     {item.timeStamp
