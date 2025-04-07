@@ -28,6 +28,31 @@ router.get('/exists/:groupUrl', async (req, res) => {
     }
 });
 
+// Add a group to the user's visited groups
+router.post('/:userId/visit/:groupId', async (req, res) => {
+    try {
+        const { userId, groupId } = req.params;
+
+        const group = await Group.findById(groupId);
+
+        if (!user || !group) {
+            return res.status(404).json({ message: "User or Group not found!" });
+        }
+
+        // Add the group to the user's visited groups if not already present
+        if (!user.groupsVisited.includes(groupId)) {
+            user.groupsVisited.push(groupId);
+            await user.save();
+        }
+
+        res.status(200).json({ message: "Group added to user's visited groups." });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
+
+
 // Create a new group
 router.post('/create-group', async (req, res) => {
     try {
@@ -78,27 +103,6 @@ router.post('/:groupUrl/send-message', async (req, res) => {
 
         const lastChat = group.chats.at(-1);
         res.status(200).json(lastChat);
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-});
-
-// Track user visits to a group
-router.post('/:groupUrl/visit', async (req, res) => {
-    try {
-        const { ipAddress, userId } = req.body;
-        const groupUrl = req.params.groupUrl;
-
-        const group = await Group.findOne({ groupUrl });
-        if (!group) {
-            return res.status(404).json({ message: "Group URL doesn't exist.", groupUrl });
-        }
-
-        group.visits += 1;
-        group.usersVisited.push({ ipAddress, userId });
-        await group.save();
-
-        res.status(200).json({ message: "Visit recorded successfully." });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }

@@ -36,7 +36,7 @@ const Login: React.FC = () => {
                 localStorage.setItem("token", response.data.token);
 
                 // Redirect to the dashboard or home page
-                navigate("/dashboard");
+                navigate("/");
             }
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {

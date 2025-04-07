@@ -2,10 +2,14 @@ import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import SERVER_URL from "../../../config/api";
+import useUser from "../../hooks/useUser";
 
 const EnterGroupView = () => {
     const navigate = useNavigate();
+    const { user } = useUser();
     const groupUrlRef = useRef<HTMLInputElement>(null);
+
+    const userId = user?.id;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -17,16 +21,22 @@ const EnterGroupView = () => {
         }
 
         try {
-            // Check if the group exists
             const response = await axios.get(`${SERVER_URL}/groups/exists/${groupUrl}`);
-            if (response.data) {
-                navigate(`${SERVER_URL}/groups/${groupUrl}`);
+
+            if (response) {
+                const groupId = response.data.groupId;
+
+                if (userId) {
+                    await axios.post(`${SERVER_URL}/users/${userId}/visit/${groupId}`);
+                }
+
+                navigate(`/groups/${groupUrl}`);
             } else {
                 alert("Group does not exist. Please check the URL.");
             }
         } catch (error) {
             console.error("Error checking group existence:", error);
-            alert("An error occurred while checking the group. Please try again.");
+            alert("An error occurred. Please try again.");
         }
     };
 

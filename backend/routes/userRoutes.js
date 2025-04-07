@@ -2,7 +2,7 @@ const express = require('express');
 const User = require('../models/User');
 const Group = require('../models/Group');
 const router = express.Router();
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Get user details by user ID
 router.get('/:userId', async (req, res) => {
@@ -20,17 +20,6 @@ router.get('/:userId', async (req, res) => {
 router.post('/create-group', async (req, res) => {
     const { name, groupUrl, admin, adminOnlyChat, autoDeleteAfter, groupType } = req.body;
 
-    console.log("Request Payload:", {
-        name,
-        groupUrl,
-        admin: admin,
-        adminOnlyChat,
-        autoDeleteAfter,
-        groupType,
-    });
-
-    console.log("Request Body:", req.body);
-
     if (!admin) {
         return res.status(400).json({ message: 'Admin ID is required.' });
     }
@@ -45,6 +34,9 @@ router.post('/create-group', async (req, res) => {
             groupType,
         });
 
+        const user = await User.findById(admin);
+        user.groupsCreated = group;
+
         await group.save();
         res.status(201).json(group);
     } catch (error) {
@@ -52,53 +44,6 @@ router.post('/create-group', async (req, res) => {
     }
 });
 
-// Add a group to the user's visited groups
-router.post('/:userId/visit-group/:groupId', async (req, res) => {
-    try {
-        const { userId, groupId } = req.params;
-
-        const user = await User.findById(userId);
-        const group = await Group.findById(groupId);
-
-        if (!user || !group) {
-            return res.status(404).json({ message: "User or Group not found!" });
-        }
-
-        // Add the group to the user's visited groups if not already present
-        if (!user.groupsVisited.includes(groupId)) {
-            user.groupsVisited.push(groupId);
-            await user.save();
-        }
-
-        res.status(200).json({ message: "Group added to user's visited groups." });
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-});
-
-// Add a group to the user's created groups
-router.post('/:userId/create-group/:groupId', async (req, res) => {
-    try {
-        const { userId, groupId } = req.params;
-
-        const user = await User.findById(userId);
-        const group = await Group.findById(groupId);
-
-        if (!user || !group) {
-            return res.status(404).json({ message: "User or Group not found!" });
-        }
-
-        // Add the group to the user's created groups if not already present
-        if (!user.groupsCreated.includes(groupId)) {
-            user.groupsCreated.push(groupId);
-            await user.save();
-        }
-
-        res.status(200).json({ message: "Group added to user's created groups." });
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-});
 
 // Get all groups created by a user
 router.get('/:userId/groups-created', async (req, res) => {
@@ -127,5 +72,30 @@ router.get('/:userId/groups-visited', async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+
+
+// POST /users/:userId/visit/:groupId
+router.post('/:userId/visit/:groupId', async (req, res) => {
+    try {
+        const { userId, groupId } = req.params;
+
+        const user = await User.findById(userId);
+        const group = await Group.findById(groupId);
+
+        if (!user || !group) {
+            return res.status(404).json({ message: "User or Group not found!" });
+        }
+
+        if (!user.groupsVisited.includes(groupId)) {
+            user.groupsVisited.push(groupId);
+            await user.save();
+        }
+
+        res.status(200).json({ message: "Group added to user's visited groups." });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
+
 
 module.exports = router;

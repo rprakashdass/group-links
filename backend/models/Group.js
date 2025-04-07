@@ -39,7 +39,7 @@ const groupSchema = new mongoose.Schema({
     },
     admin: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Reference to the User model
+        ref: 'User',
         required: false,
     },
     autoDeleteAfter: {
@@ -64,7 +64,7 @@ const groupSchema = new mongoose.Schema({
     }],
     groupType: {
         type: String,
-        enum: ['strict', 'link-only'], // 'strict' requires registration, 'link-only' allows unregistered users
+        enum: ['strict', 'link-only'],
         required: true,
         default: 'strict',
     },

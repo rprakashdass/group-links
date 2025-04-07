@@ -1,11 +1,11 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const User = require('../models/User'); // Assuming you have a User model
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
 const router = express.Router();
 
 // Secret key for JWT
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Login route
 router.post('/login', async (req, res) => {

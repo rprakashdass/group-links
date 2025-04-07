@@ -32,9 +32,6 @@ const useUser = () => {
                         Authorization: `Bearer ${token}`, // Pass the token in the Authorization header
                     },
                 });
-
-                console.log('Response:', response);
-
                 if (!response.ok) {
                     throw new Error('Failed to fetch user');
                 }
@@ -42,7 +39,7 @@ const useUser = () => {
                 // Parse the response as JSON
                 const data = await response.json();
                 const userData: User = {
-                    id: data._id, // Map _id to id
+                    id: data._id,
                     username: data.username,
                     email: data.email,
                     groupsCreated: data.groupsCreated,
@@ -50,7 +47,6 @@ const useUser = () => {
                     createdAt: data.createdAt,
                     updatedAt: data.updatedAt,
                 };
-                console.log('User Data:', userData);
 
                 setUser(userData); // Set the user data
             } catch (error) {

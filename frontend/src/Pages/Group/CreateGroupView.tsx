@@ -6,7 +6,7 @@ import useUser from "../../hooks/useUser";
 
 const CreateGroupView: React.FC = () => {
     const navigate = useNavigate();
-    const { user } = useUser(); // Get the logged-in user's data
+    const { user } = useUser();
     const nameRef = useRef<HTMLInputElement>(null);
     const groupUrlRef = useRef<HTMLInputElement>(null);
     const adminOnlyChatRef = useRef<HTMLInputElement>(null);
@@ -42,14 +42,14 @@ const CreateGroupView: React.FC = () => {
                 {
                     name,
                     groupUrl,
-                    adminId: user?.id, // Pass the logged-in user's ID as the admin
+                    adminId: user?.id,
                     adminOnlyChat,
                     autoDeleteAfter,
                     groupType,
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`, // Pass the token in the headers
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
