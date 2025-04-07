@@ -22,7 +22,7 @@ router.get('/exists/:groupUrl', async (req, res) => {
         if (!group) {
             return res.status(202).send(false);
         }
-        return res.status(200).send(true);
+        return res.status(200).send(group);
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
     }

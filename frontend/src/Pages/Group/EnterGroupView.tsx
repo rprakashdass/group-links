@@ -22,8 +22,9 @@ const EnterGroupView = () => {
         try {
             const response = await axios.get(`${SERVER_URL}/groups/exists/${groupUrl}`);
 
-            if (response) {
-                const groupId = response.data.groupId;
+            if (response.status == 200) {
+
+                const groupId = response?.data?._id;
                 if (userId) {
                     await axios.post(`${SERVER_URL}/users/${userId}/visit/${groupId}`);
                 }

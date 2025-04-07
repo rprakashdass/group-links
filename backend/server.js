@@ -19,10 +19,7 @@ const AuthRouter = require('./routes/authRoutes'); // Assuming you have an auth 
 app.use(express.json());
 
 // CORS configuration
-const allowedOrigins = [
-    "http://localhost:5173",
-    "http://g.rprakashdass.in"
-];
+const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS || '[]');
 app.use(cors({
     origin: function (origin, callback) {
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
