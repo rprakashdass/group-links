@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import SERVER_URL from '../../config/api';
+import SERVER_URL from '../config/api';
 
 interface User {
     id: string; // User ID for backend operations

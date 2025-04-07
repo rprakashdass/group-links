@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import SERVER_URL from "../../../config/api";
+import SERVER_URL from "../../config/api";
 import useUser from "../../hooks/useUser";
 
 const CreateGroupView: React.FC = () => {

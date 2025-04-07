@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import SERVER_URL from "../../config/api";
+import SERVER_URL from "../config/api";
 import { useNavigate } from "react-router-dom";
 
 type GroupType = {

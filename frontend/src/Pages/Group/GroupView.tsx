@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import SERVER_URL from '../../../config/api';
+import SERVER_URL from '../../config/api';
 import { IoMdSend } from 'react-icons/io';
 import useUser from '../../hooks/useUser'; // Import useUser hook
 

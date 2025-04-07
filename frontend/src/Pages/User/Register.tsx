@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import SERVER_URL from '../../../config/api';
+import SERVER_URL from '../../config/api';
 
 const Register: React.FC = () => {
     const [formData, setFormData] = useState({

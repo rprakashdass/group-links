@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUser from "../hooks/useUser";
 import axios from "axios";
-import SERVER_URL from "../../config/api";
+import SERVER_URL from "../config/api";
 import CreateGroupView from "./Group/CreateGroupView";
 import EnterGroupView from "./Group/EnterGroupView";
 import GroupView from "./Group/GroupView";
