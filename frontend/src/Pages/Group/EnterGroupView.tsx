@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import SERVER_URL from "../../config/api";
@@ -8,6 +8,7 @@ const EnterGroupView = () => {
     const navigate = useNavigate();
     const { user } = useUser();
     const groupUrlRef = useRef<HTMLInputElement>(null);
+    const [loading, setLoading] = useState(false);
     const userId = user?.id;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -20,14 +21,18 @@ const EnterGroupView = () => {
         }
 
         try {
+            setLoading(true);
+
             const response = await axios.get(`${SERVER_URL}/groups/exists/${groupUrl}`);
 
-            if (response.status == 200) {
-
+            if (response.status === 200) {
                 const groupId = response?.data?._id;
+
                 if (userId) {
                     await axios.post(`${SERVER_URL}/users/${userId}/visit/${groupId}`);
                 }
+
+                // Navigation only - WebSocket handled in GroupChatPage
                 navigate(`/groups/${groupUrl}`);
             } else {
                 alert("Group does not exist. Please check the URL.");
@@ -35,11 +40,13 @@ const EnterGroupView = () => {
         } catch (error) {
             console.error("Error checking group existence:", error);
             alert("An error occurred. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="bg-gray-100">
+        <div className="bg-gray-100 min-h-screen flex items-center justify-center px-4">
             <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
                 <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">Join a Group</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -56,9 +63,10 @@ const EnterGroupView = () => {
                     />
                     <button
                         type="submit"
-                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-all duration-200"
+                        disabled={loading}
+                        className={`mt-4 ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"} text-white font-semibold py-2 rounded-lg transition-all duration-200`}
                     >
-                        Enter Group
+                        {loading ? "Entering..." : "Enter Group"}
                     </button>
                 </form>
             </div>

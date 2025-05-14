@@ -4,6 +4,7 @@ const Group = require('../models/Group');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { createUser } = require('../controllers/authController');
+const { getUserGroups } = require("../controllers/userController");
 
 // Get user details by user ID
 router.get('/:userId', async (req, res) => {
@@ -99,5 +100,6 @@ router.post('/:userId/visit/:groupId', async (req, res) => {
 });
 
 router.post('/create-user', createUser);
+router.get("/:userId/groups", getUserGroups);
 
 module.exports = router;

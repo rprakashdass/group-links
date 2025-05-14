@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import SERVER_URL from '../../config/api';
 import { IoMdSend } from 'react-icons/io';
-import useUser from '../../hooks/useUser'; // Import useUser hook
+import { io, Socket } from 'socket.io-client';
+import API_BASE_URL from '../../config/api';
+import useUser from '../../hooks/useUser';
 
 type ChatType = {
   senderName: string;
@@ -25,7 +26,7 @@ type GroupType = {
 };
 
 const GroupView = () => {
-  const { user } = useUser(); // Get the logged-in user's data from UserContext
+  const { user } = useUser();
   const [message, setMessage] = useState<string>('');
   const { groupUrl } = useParams<{ groupUrl: string }>();
   const [group, setGroup] = useState<GroupType | null>(null);
@@ -33,12 +34,21 @@ const GroupView = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     if (!groupUrl) return;
+
+    socketRef.current = io(API_BASE_URL);
+    socketRef.current.emit('joinGroup', groupUrl);
+
+    socketRef.current.on('newMessage', (newChat: ChatType) => {
+      setChats((prevChats) => [...prevChats, newChat]);
+    });
+
     setLoading(true);
     axios
-      .get(`${SERVER_URL}/groups/${groupUrl}`)
+      .get(`${API_BASE_URL}/groups/${groupUrl}`)
       .then((response) => {
         setGroup(response.data);
         setChats(response.data.chats || []);
@@ -49,6 +59,10 @@ const GroupView = () => {
         setError('Failed to load group data');
         setLoading(false);
       });
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
   }, [groupUrl]);
 
   useEffect(() => {
@@ -58,27 +72,34 @@ const GroupView = () => {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || !groupUrl) return;
-
+  
     try {
-      const token = localStorage.getItem('token'); // Retrieve the token for authentication
+      const token = localStorage.getItem('token');
       if (!token) {
         alert('You must be logged in to send a message.');
         return;
       }
-
+  
       const response = await axios.post(
-        `${SERVER_URL}/groups/${groupUrl}/send-message`,
+        `${API_BASE_URL}/groups/${groupUrl}/send-message`,
         {
-          senderName: user?.username || 'Anonymous', // Use the logged-in user's name or fallback to 'Anonymous'
+          senderName: user?.username || 'Anonymous',
           message,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Pass the token in the headers
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      setChats((prevChats) => [...prevChats, response.data]);
+      const sentMessage: ChatType = response.data;
+      // Emit for others to receive
+      if (socketRef.current) {
+        socketRef.current.emit('sendMessage', {
+          groupUrl,
+          message: sentMessage,
+        });
+      }
       setMessage('');
     } catch (err) {
       console.error('Error sending message', err);
@@ -106,7 +127,9 @@ const GroupView = () => {
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md">
         <div className="p-4 text-center">
-          <h1 className="text-xl font-semibold text-gray-800">{group?.name || 'Group Chat'}</h1>
+          <h1 className="text-xl font-semibold text-gray-800">
+            {group?.name || 'Group Chat'}
+          </h1>
           <p className="text-sm text-gray-500">
             Admin: {group?.admin?.username || 'Unknown'}
           </p>

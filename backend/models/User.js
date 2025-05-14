@@ -22,17 +22,16 @@ const UserSchema = new Schema({
   groupsCreated: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Group', // Assuming there is a Group model
+      ref: 'Group',
     },
   ],
   groupsVisited: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Group', // Assuming there is a Group model
+      ref: 'Group',
     },
   ],
 }, { timestamps: true });
 
-// Create and export the User model
 const User = mongoose.model('User', UserSchema);
 module.exports = User;

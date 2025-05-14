@@ -7,6 +7,7 @@ import CreateGroupView from "./Group/CreateGroupView";
 import EnterGroupView from "./Group/EnterGroupView";
 import GroupView from "./Group/GroupView";
 import { FiMenu, FiX } from "react-icons/fi";
+import JoinedGroups from "./Group/JoinedGroups";
 
 type GroupType = {
     _id: string;
@@ -99,6 +100,10 @@ const Home: React.FC = () => {
             );
         }
 
+        if(activeTab === "joined") {
+            return <JoinedGroups/>
+        }
+
         if (loadingGroups) {
             return <p className="text-center text-gray-600">Loading groups...</p>;
         }
@@ -126,9 +131,7 @@ const Home: React.FC = () => {
 
         return (
             <p className="text-center text-gray-600 mt-4">
-                {activeTab === "joined"
-                    ? "You haven't joined any groups yet."
-                    : "You haven't created any groups yet."}
+                404 Not Found: You have not joined any groups yet.
             </p>
         );
     };
