@@ -19,7 +19,7 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS || '[]');
-
+const allowedFrontendOrigin = JSON.parse(process.env.ALLOWED_FRONTEND_ORIGINS || '[]');
 app.use(cors({
     origin: function (origin, callback) {
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -46,7 +46,13 @@ mongoose.connect(MONGO_URI)
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: process.env.FRONTEND_URL,
+        origin: function (origin, callback) {
+            if (allowedFrontendOrigin.indexOf(origin) !== -1 || !origin) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         methods: ["GET", "POST"],
         credentials: true,
     },
