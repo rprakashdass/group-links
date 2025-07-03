@@ -6,6 +6,9 @@ import { io, Socket } from 'socket.io-client';
 import API_BASE_URL from '../../config/api';
 import useUser from '../../hooks/useUser';
 import { BiHome } from 'react-icons/bi';
+import { FaUserCircle, FaUsers } from 'react-icons/fa';
+import { BsEmojiSmile } from 'react-icons/bs';
+
 
 type ChatType = {
   senderName: string;
@@ -26,6 +29,36 @@ type GroupType = {
   };
 };
 
+// Helper to detect URLs in text
+const urlRegex = /(https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+)|(www\.[\w\-._~:/?#[\]@!$&'()*+,;=%]+)/gi;
+
+// Helper to convert text with links to clickable JSX
+function linkify(text: string, isUser: boolean) {
+  return text.split(urlRegex).map((part, i) => {
+    if (!part) return null;
+    if (part.match(urlRegex)) {
+      let url = part;
+      if (!/^https?:\/\//i.test(url)) url = 'http://' + url;
+      return (
+        <a
+          key={i}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={
+            isUser
+              ? 'text-grey-300 underline font-bold break-all hover:text-grey-200'
+              : 'text-blue-400 underline break-all hover:text-blue-600'
+          }
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 const GroupView = () => {
   const { user } = useUser();
   const [message, setMessage] = useState<string>('');
@@ -36,6 +69,9 @@ const GroupView = () => {
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiList = ['😀', '😂', '😍', '😎', '👍', '🎉', '🙏', '🔥', '🥳', '😢'];
+  const [linkPreviews, setLinkPreviews] = useState<Array<null | { url: string; title: string; description: string; image?: string }>>([]);
 
   useEffect(() => {
     if (!groupUrl) return;
@@ -68,6 +104,30 @@ const GroupView = () => {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chats]);
+
+  // Fetch link previews for all chat messages
+  useEffect(() => {
+    async function fetchAllPreviews() {
+      const previews: Array<null | { url: string; title: string; description: string; image?: string }> = await Promise.all(
+        chats.map(async (item) => {
+          const match = item.message.match(urlRegex);
+          if (!match) return null;
+          const url = match[0].startsWith('http') ? match[0] : 'http://' + match[0];
+          try {
+            const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data;
+          } catch {
+            return null;
+          }
+        })
+      );
+      setLinkPreviews(previews);
+    }
+    if (chats.length > 0) fetchAllPreviews();
+    else setLinkPreviews([]);
   }, [chats]);
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -107,6 +167,11 @@ const GroupView = () => {
     }
   };
 
+  const handleEmojiClick = (emoji: string) => {
+    setMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -124,90 +189,164 @@ const GroupView = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 font-sans">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md">
-        <div className="p-4 text-center">
-          <Link to="/"> 
-            <BiHome size={32} className="fixed top-6 left-4 text-blue-500" />
+      <div className="sticky top-0 left-0 right-0 z-20 bg-white/90 shadow-md backdrop-blur border-b border-gray-200">
+        <div className="flex items-center gap-4 p-4 md:p-6">
+          <Link to="/">
+            <BiHome size={32} className="text-blue-500 hover:text-blue-700 transition-colors" aria-label="Home" />
           </Link>
-          <h1 className="text-xl font-semibold text-gray-800">
-            {group?.name || 'Group Chat'}
-          </h1>
-          <p className="text-sm text-gray-500">
-            Admin: {group?.admin?.username || 'Unknown'}
-          </p>
+          <div className="flex items-center gap-3">
+            <FaUsers size={40} className="text-blue-400" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                {group?.name || 'Group Chat'}
+                {group?.adminOnlyChat && (
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full font-medium">Admin Only</span>
+                )}
+              </h1>
+              <div className="flex gap-4 text-xs text-gray-500 mt-1">
+                <span>Admin: {group?.admin?.username || 'Unknown'}</span>
+                {group?.createdAt && (
+                  <span>Created: {new Date(group.createdAt).toLocaleDateString()}</span>
+                )}
+                {group?.visits !== undefined && (
+                  <span>Visits: {group.visits}</span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 pt-16 md:pt-20 pb-20 overflow-y-auto">
-        <div className="flex flex-col gap-4 p-4">
-          {chats.map((item, index) => (
-            <div
-              key={index}
-              className={`flex w-full ${
-                item.senderName === user?.username ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
-                  item.senderName === user?.username
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white text-gray-800'
-                }`}
-              >
-                <p className="text-base">{item.message}</p>
-                <div className="flex justify-between mt-1 text-xs">
-                  <span
-                    className={
-                      item.senderName === user?.username ? 'text-blue-100' : 'text-gray-500'
-                    }
-                  >
-                    {item.senderName}
-                  </span>
-                  <span
-                    className={
-                      item.senderName === user?.username ? 'text-blue-100' : 'text-gray-500'
-                    }
-                  >
-                    {item.timeStamp
-                      ? new Date(item.timeStamp).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : 'Invalid Time'}
-                  </span>
+      <div className="flex-1 pt-2 md:pt-4 pb-24 overflow-y-auto relative">
+        <div className="relative flex flex-col gap-4 p-4 md:p-8">
+          {/* Date separators */}
+          {(() => {
+            let lastDate = '';
+            return chats.map((item, index) => {
+              const msgDate = new Date(item.timeStamp).toLocaleDateString();
+              const showDate = msgDate !== lastDate;
+              lastDate = msgDate;
+              const isUser = item.senderName === user?.username;
+              const isAdmin = group?.admin?.username === item.senderName;
+              // Avatar/Initial
+              const avatar = (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-lg shadow">
+                  {item.senderName?.[0]?.toUpperCase() || <FaUserCircle size={28} />}
                 </div>
-              </div>
-            </div>
-          ))}
+              );
+              return (
+                <div key={index}>
+                  {showDate && (
+                    <div className="flex justify-center my-2">
+                      <span className="px-3 py-1 text-xs bg-white/80 text-gray-500 rounded-full shadow">{msgDate === new Date().toLocaleDateString() ? 'Today' : msgDate}</span>
+                    </div>
+                  )}
+                  <div className={`group flex w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex items-end gap-2 max-w-full ${isUser ? 'flex-row-reverse' : ''}`}>
+                      {/* Avatar for others */}
+                      {!isUser && avatar}
+                      <div
+                        className={`relative max-w-[85vw] md:max-w-[60%] px-4 py-2 rounded-3xl shadow-lg transition-all duration-200 border ${
+                          isUser
+                            ? 'bg-gradient-to-br from-blue-500 via-blue-400 to-blue-600 text-white border-blue-400'
+                            : 'bg-white text-gray-900 border-gray-200'
+                        } hover:scale-[1.02] hover:shadow-xl min-w-[120px] md:min-w-[180px] lg:min-w-[220px]`}
+                      >
+                        {/* Sender name */}
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className={`text-xs font-semibold ${isUser ? 'text-blue-100' : 'text-blue-700'}`}>{item.senderName}</span>
+                          {isAdmin && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded text-[10px] font-semibold border border-yellow-300">Admin</span>
+                          )}
+                        </div>
+                        {/* Message */}
+                        <p className="text-base break-words leading-relaxed">
+                          {linkify(item.message, isUser)}
+                        </p>
+                        {/* Link preview (if any) */}
+                        {linkPreviews[index] && (
+                          <div className="mt-2 p-2 border rounded bg-gray-50 text-xs max-w-full overflow-hidden">
+                            {linkPreviews[index].image && (
+                              <img src={linkPreviews[index].image} alt="preview" className="w-12 h-12 object-cover float-left mr-2 rounded" />
+                            )}
+                            <div>
+                              <div className="font-bold text-gray-800 truncate">{linkPreviews[index].title}</div>
+                              <div className="text-gray-600 truncate">{linkPreviews[index].description}</div>
+                              <a href={linkPreviews[index].url} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">{linkPreviews[index].url}</a>
+                            </div>
+                          </div>
+                        )}
+                        {/* Time */}
+                        <div className="flex justify-end mt-1 text-xs">
+                          <span className={isUser ? 'text-blue-100' : 'text-gray-400'}>
+                            {item.timeStamp
+                              ? new Date(item.timeStamp).toLocaleTimeString('en-US', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : 'Invalid Time'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            });
+          })()}
           <div ref={chatEndRef} />
         </div>
       </div>
 
       {/* Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white/95 border-t border-gray-200 p-3 md:p-4 flex items-center justify-center shadow-lg">
         {group?.adminOnlyChat ? (
-          <p className="text-center text-gray-600 font-medium">
-            Only admins can send messages
-          </p>
+          <p className="text-center text-gray-600 font-medium w-full">Only admins can send messages</p>
         ) : (
-          <form onSubmit={sendMessage} className="flex items-center gap-2">
+          <form onSubmit={sendMessage} className="flex items-center gap-2 w-full max-w-2xl relative">
             <input
               type="text"
               name="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 p-2 md:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 text-gray-800 transition-all"
+              aria-label="Type your message"
+              autoComplete="off"
             />
+            <button
+              type="button"
+              className="p-2 text-gray-400 hover:text-yellow-500 transition-colors relative"
+              aria-label="Emoji picker"
+              onClick={() => setShowEmojiPicker((v) => !v)}
+            >
+              <BsEmojiSmile size={22} />
+              {/* Emoji Picker Popup */}
+              {showEmojiPicker && (
+                <div className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap gap-1 z-50">
+                  {emojiList.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      className="text-2xl hover:bg-gray-100 rounded p-1"
+                      onClick={() => handleEmojiClick(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </button>
             <button
               type="submit"
               disabled={!message.trim()}
-              className="p-2 disabled:opacity-50"
+              className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 transition-all text-white disabled:opacity-50 shadow-md focus:ring-2 focus:ring-blue-300"
+              aria-label="Send message"
             >
-              <IoMdSend size={24} className="text-blue-500" />
+              <IoMdSend size={24} />
             </button>
           </form>
         )}
