@@ -7,6 +7,11 @@ const router = express.Router();
 router.get('/exists/:groupUrl', async (req, res) => {
     try {
         const group = await Group.findOne({ groupUrl: req.params.groupUrl });
+        if(group){
+            console.log(group);
+        } else {
+            console.log("Group not found!");
+        }
         return res.status(group ? 200 : 202).send(group || false);
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
@@ -91,7 +96,9 @@ router.post('/create-group', async (req, res) => {
 
         const groupExists = await Group.findOne({ groupUrl });
         if (groupExists) {
-            return res.status(400).json({ message: "Group URL already exists. Choose a different one." });
+            return res
+            .status(409)
+            .json({ message: "Group URL already exists. Choose a different one." });
         }
 
         const newGroup = new Group({
