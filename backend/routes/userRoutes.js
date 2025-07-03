@@ -5,6 +5,10 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { createUser } = require('../controllers/authController');
 const { getUserGroups } = require("../controllers/userController");
+const linkPreviewController = require('../controllers/linkPreviewController');
+
+// Place link preview route FIRST
+router.get('/link-preview', linkPreviewController.getLinkPreview);
 
 // Get user details by user ID
 router.get('/:userId', async (req, res) => {

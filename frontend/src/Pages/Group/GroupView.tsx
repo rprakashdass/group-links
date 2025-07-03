@@ -59,6 +59,9 @@ function linkify(text: string, isUser: boolean) {
   });
 }
 
+// Add a simple in-memory cache for link previews
+const linkPreviewCache: { [url: string]: { url: string; title: string; description: string; image?: string } } = {};
+
 const GroupView = () => {
   const { user } = useUser();
   const [message, setMessage] = useState<string>('');
@@ -114,10 +117,18 @@ const GroupView = () => {
           const match = item.message.match(urlRegex);
           if (!match) return null;
           const url = match[0].startsWith('http') ? match[0] : 'http://' + match[0];
+          // Only allow previews for https links
+          if (!/^https:\/\//.test(url)) {
+            return null;
+          }
+          if (linkPreviewCache[url]) {
+            return linkPreviewCache[url];
+          }
           try {
-            const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+            const res = await fetch(`${API_BASE_URL}/users/link-preview?url=${encodeURIComponent(url)}`);
             if (!res.ok) return null;
             const data = await res.json();
+            linkPreviewCache[url] = data; // Cache it!
             return data;
           } catch {
             return null;
@@ -266,17 +277,18 @@ const GroupView = () => {
                         <p className="text-base break-words leading-relaxed">
                           {linkify(item.message, isUser)}
                         </p>
-                        {/* Link preview (if any) */}
-                        {linkPreviews[index] && (
-                          <div className="mt-2 p-2 border rounded bg-gray-50 text-xs max-w-full overflow-hidden">
+                        {/* Link preview (if any, only for first link in message) */}
+                        {item.message.match(urlRegex) && linkPreviews[index] && (
+                          <div style={{ border: '1px solid #ccc', padding: 8, marginTop: 4, borderRadius: 8, background: '#f8fafc' }}>
                             {linkPreviews[index].image && (
-                              <img src={linkPreviews[index].image} alt="preview" className="w-12 h-12 object-cover float-left mr-2 rounded" />
+                              <img src={linkPreviews[index].image} alt="preview" style={{ width: 48, height: 48, objectFit: 'cover', float: 'left', marginRight: 12, borderRadius: 6 }} />
                             )}
-                            <div>
-                              <div className="font-bold text-gray-800 truncate">{linkPreviews[index].title}</div>
-                              <div className="text-gray-600 truncate">{linkPreviews[index].description}</div>
-                              <a href={linkPreviews[index].url} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">{linkPreviews[index].url}</a>
+                            <div style={{ overflow: 'hidden' }}>
+                              <div style={{ fontWeight: 'bold', color: '#1e293b', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{linkPreviews[index].title}</div>
+                              <div style={{ color: '#64748b', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{linkPreviews[index].description}</div>
+                              <a href={linkPreviews[index].url} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline', fontSize: 12 }}>{linkPreviews[index].url}</a>
                             </div>
+                            <div style={{ clear: 'both' }} />
                           </div>
                         )}
                         {/* Time */}

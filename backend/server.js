@@ -41,6 +41,9 @@ app.use('/groups', GroupRouter);
 app.use('/users', UserRouter);
 app.use('/auth', AuthRouter);
 
+// Link preview endpoint: GET /users/link-preview?url=https://example.com
+// Returns { url, title, description, image } for the given URL if available.
+
 // Database connection
 mongoose.connect(MONGO_URI)
     .then(() => console.log("DB connected"))
