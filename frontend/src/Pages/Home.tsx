@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useUser from "../hooks/useUser";
 import axios from "axios";
 import SERVER_URL from "../config/api";
 import CreateGroupView from "./Group/CreateGroupView";
 import EnterGroupView from "./Group/EnterGroupView";
-import GroupView from "./Group/GroupView";
 import { FiMenu, FiX } from "react-icons/fi";
 import JoinedGroups from "./Group/JoinedGroups";
 
@@ -18,11 +17,10 @@ type GroupType = {
 const Home: React.FC = () => {
     const { user, loading } = useUser();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<"joined" | "created" | "join" | "create" | "groupView">("joined");
+    const [activeTab, setActiveTab] = useState<"joined" | "created" | "join" | "create">("joined");
     const [groups, setGroups] = useState<GroupType[]>([]);
     const [loadingGroups, setLoadingGroups] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedGroupUrl, setSelectedGroupUrl] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     useEffect(() => {
@@ -70,11 +68,6 @@ const Home: React.FC = () => {
         fetchGroups();
     }, [activeTab, user, navigate]);
 
-    const handleGroupClick = (groupUrl: string) => {
-        setSelectedGroupUrl(groupUrl);
-        setActiveTab("groupView");
-    };
-
     const renderContent = () => {
         if (activeTab === "join") {
             return (
@@ -92,13 +85,6 @@ const Home: React.FC = () => {
             );
         }
 
-        if (activeTab === "groupView" && selectedGroupUrl) {
-            return (
-                <div className="w-full flex justify-center items-center">
-                    <GroupView />
-                </div>
-            );
-        }
 
         if(activeTab === "joined") {
             return <JoinedGroups/>
@@ -116,14 +102,14 @@ const Home: React.FC = () => {
             return (
                 <ul className="w-full max-w-3xl mx-auto space-y-4">
                     {groups.map((group) => (
+                        <Link to={`/groups/${group.groupUrl}`} key={group._id}>
                         <li
-                            key={group._id}
-                            onClick={() => handleGroupClick(group.groupUrl)}
                             className="p-4 bg-white rounded-lg shadow hover:bg-gray-100 cursor-pointer transition-all duration-200"
                         >
                             <p className="font-semibold text-lg">{group.name}</p>
                             <p className="text-sm text-gray-500">/groups/{group.groupUrl}</p>
                         </li>
+                        </Link>
                     ))}
                 </ul>
             );

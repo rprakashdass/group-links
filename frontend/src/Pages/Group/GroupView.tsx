@@ -1,10 +1,11 @@
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { IoMdSend } from 'react-icons/io';
 import { io, Socket } from 'socket.io-client';
 import API_BASE_URL from '../../config/api';
 import useUser from '../../hooks/useUser';
+import { BiHome } from 'react-icons/bi';
 
 type ChatType = {
   senderName: string;
@@ -127,6 +128,9 @@ const GroupView = () => {
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md">
         <div className="p-4 text-center">
+          <Link to="/"> 
+            <BiHome size={32} className="fixed top-6 left-4 text-blue-500" />
+          </Link>
           <h1 className="text-xl font-semibold text-gray-800">
             {group?.name || 'Group Chat'}
           </h1>
@@ -137,7 +141,7 @@ const GroupView = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 pt-16 pb-20 overflow-y-auto">
+      <div className="flex-1 pt-16 md:pt-20 pb-20 overflow-y-auto">
         <div className="flex flex-col gap-4 p-4">
           {chats.map((item, index) => (
             <div
