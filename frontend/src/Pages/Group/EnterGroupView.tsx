@@ -27,12 +27,18 @@ const EnterGroupView = () => {
 
             if (response.status === 200) {
                 const groupId = response?.data?._id;
-
                 if (userId) {
-                    await axios.post(`${SERVER_URL}/users/${userId}/visit/${groupId}`);
+                    try {
+                        await axios.post(`${SERVER_URL}/groups/${userId}/visit/${groupId}`);
+                    } catch (err) {
+                        // If already joined, ignore error and proceed
+                        if (axios.isAxiosError(err) && err.response && err.response.status !== 404) {
+                            alert('Failed to join group.');
+                            setLoading(false);
+                            return;
+                        }
+                    }
                 }
-
-                // Navigation only - WebSocket handled in GroupChatPage
                 navigate(`/groups/${groupUrl}`);
             } else {
                 alert("Group does not exist. Please check the URL.");
