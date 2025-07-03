@@ -98,13 +98,16 @@ const Home: React.FC = () => {
             return <p className="text-center text-red-600">{error}</p>;
         }
 
+        // Created Groups
         if (groups.length > 0) {
             return (
-                <ul className="w-full max-w-3xl mx-auto space-y-4">
+                <>
+                <h2 className="text-2xl font-bold text-blue-600 mb-4">Your Created Groups</h2>
+                <ul className="w-full mt-8 mx-auto space-y-4">
                     {groups.map((group) => (
                         <Link to={`/groups/${group.groupUrl}`} key={group._id}>
                         <li
-                            className="p-4 bg-white rounded-lg shadow hover:bg-gray-100 cursor-pointer transition-all duration-200"
+                            className="m-4 p-4 bg-white rounded-lg shadow hover:bg-gray-100 cursor-pointer transition-all duration-200"
                         >
                             <p className="font-semibold text-lg">{group.name}</p>
                             <p className="text-sm text-gray-500">/groups/{group.groupUrl}</p>
@@ -112,6 +115,7 @@ const Home: React.FC = () => {
                         </Link>
                     ))}
                 </ul>
+                </>
             );
         }
 

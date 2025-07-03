@@ -8,6 +8,7 @@ import useUser from '../../hooks/useUser';
 import { BiHome } from 'react-icons/bi';
 import { FaUserCircle, FaUsers } from 'react-icons/fa';
 import { BsEmojiSmile } from 'react-icons/bs';
+import { MdDelete } from 'react-icons/md';
 
 
 type ChatType = {
@@ -183,6 +184,30 @@ const GroupView = () => {
     setShowEmojiPicker(false);
   };
 
+  const handleDeleteMessage = async (chat: ChatType) => {
+    if (!groupUrl || !user) return;
+    if (!window.confirm('Are you sure you want to delete this message?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/groups/${groupUrl}/delete-message`, {
+        data: {
+          senderName: chat.senderName,
+          timeStamp: chat.timeStamp,
+          userId: user.id || (user as any)._id, // prefer id, fallback to _id if present
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setChats((prev) => prev.filter(
+        (c) => !(c.senderName === chat.senderName && new Date(c.timeStamp).getTime() === new Date(chat.timeStamp).getTime())
+      ));
+    } catch (err) {
+      alert('Failed to delete message.');
+      console.error(err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -302,6 +327,15 @@ const GroupView = () => {
                               : 'Invalid Time'}
                           </span>
                         </div>
+                        {(isUser || (user && group?.admin?.username === user.username)) && (
+                          <button
+                            className="absolute top-2 -right-1 p-1 rounded hover:bg-red-100 text-red-500 z-10"
+                            title="Delete message"
+                            onClick={() => handleDeleteMessage(item)}
+                          >
+                            <MdDelete size={18} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -315,7 +349,7 @@ const GroupView = () => {
 
       {/* Input Area */}
       <div className="fixed bottom-0 left-0 right-0 z-10 bg-white/95 border-t border-gray-200 p-3 md:p-4 flex items-center justify-center shadow-lg">
-        {group?.adminOnlyChat ? (
+        {group?.adminOnlyChat && user?.username !== group?.admin?.username ? (
           <p className="text-center text-gray-600 font-medium w-full">Only admins can send messages</p>
         ) : (
           <form onSubmit={sendMessage} className="flex items-center gap-2 w-full max-w-2xl relative">
