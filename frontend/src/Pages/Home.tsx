@@ -105,7 +105,7 @@ const Home: React.FC = () => {
 
             {/* Sidebar */}
             <div
-                className={`bg-gradient-to-b from-blue-600 to-blue-400 shadow-md md:static w-full md:w-1/4 text-white ${
+                className={`relative bg-gradient-to-b from-blue-600 to-blue-400 shadow-md md:static w-full md:w-1/4 text-white h-full md:h-screen ${
                     isSidebarOpen ? "block" : "hidden md:block"
                 }`}
             >
@@ -153,6 +153,13 @@ const Home: React.FC = () => {
                         <FiPlusCircle /> Create Group
                     </button>
                 )}
+                <div className="absolute bottom-0 left-0 w-full md:w-1/4 p-4 text-xs text-blue-100 bg-blue-700/80 flex flex-col items-center gap-1">
+                    <span>Made by
+                        <a href="https://www.rprakashdass.in" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-yellow-200">Prakash Dass R</a>
+                        {" "} and 
+                        <a href="https://siranjeevik.vercel.app" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-yellow-200">Siranjeevi K</a>
+                    </span>
+                </div>
             </div>
 
             {/* Main Content */}
