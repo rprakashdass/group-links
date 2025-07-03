@@ -34,6 +34,9 @@ app.use(cors({
 
 app.use(express.json());
 // Routes
+app.get('/', (req, res) => {
+    res.send('Working fine');
+});
 app.use('/groups', GroupRouter);
 app.use('/users', UserRouter);
 app.use('/auth', AuthRouter);
@@ -88,5 +91,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT || 3000, () => {
-console.log("Server running on port 3000");
+console.log(`Server running on port ${PORT}`);
 });
