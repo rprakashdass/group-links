@@ -1,6 +1,7 @@
 const express = require('express');
 const Group = require('../models/Group');
 const User = require('../models/User'); // 🔧 Needed for visit route
+const mongoose = require('mongoose');
 const router = express.Router();
 
 // Check if a group exists by groupUrl
@@ -31,7 +32,8 @@ router.get('/created/:adminId', async (req, res) => {
 // Get groups visited by a user
 router.get('/visited/:userId', async (req, res) => {
     try {
-        const groups = await Group.find({ 'usersVisited.userId': req.params.userId });
+        const userObjectId = new mongoose.Types.ObjectId(req.params.userId);
+        const groups = await Group.find({ 'usersVisited.userId': userObjectId });
         res.status(200).json(groups);
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
@@ -50,9 +52,17 @@ router.post('/:userId/visit/:groupId', async (req, res) => {
             return res.status(404).json({ message: "User or Group not found!" });
         }
 
+        // Add group to user's visited list
         if (!user.groupsVisited.includes(groupId)) {
             user.groupsVisited.push(groupId);
             await user.save();
+        }
+
+        // Add user to group's usersVisited list
+        const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+        if (!group.usersVisited.some(u => u.userId && u.userId.toString() === userId)) {
+            group.usersVisited.push({ userId, ipAddress, visitTime: new Date() });
+            await group.save();
         }
 
         res.status(200).json({ message: "Group added to user's visited groups." });
